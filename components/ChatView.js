@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { retrieveOldMessages, sendMessage } from '../api/chatRoom'; // Import the API functions
 import { useSocket } from './SocketContext'; // Import the socket context
+import { useAuth } from './UserContext';
 
-const ChatView = ({route,token,userId}) => {
+const ChatView = ({route}) => {
+
+
+  const {token, userId} = useAuth()
+
   const [chat, setChat] = useState('');
   const [messages, setMessages] = useState([]);
   const [chatInfo, setChatInfo] = useState(null);
@@ -13,6 +18,8 @@ const ChatView = ({route,token,userId}) => {
   
 
   useEffect(() => {
+
+    console.log(userId)
     
     const { chatRoomInfo } = route.params;
     const chatInfo = chatRoomInfo.chatRoom;
@@ -28,6 +35,7 @@ const ChatView = ({route,token,userId}) => {
     socket.emit("subscribe", chatInfo.chatRoomId)
 
     if (!chatInfo.isNew) {
+     
       retrieveOldMessagesAndSetState(chatInfo.chatRoomId, token);
     }
 
@@ -41,6 +49,7 @@ const ChatView = ({route,token,userId}) => {
   };
 
   const handleSocketNewMessage = (data) => {
+    console.log("message received")
 
     setMessages(prev=>{
       

@@ -1,23 +1,40 @@
-import React from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { StyleSheet } from 'react-native';
 import { Button, Card, Text, TextInput} from 'react-native-paper';
+import { useAuth } from './UserContext';
 
 
-
-export default class SignUpScreen extends React.Component {
+const  SignUpScreen = ({navigation}) => {
 
     // theme = useTheme()
-   state = {
-     username : '',
-     password : '',
-     confirmPassword: '',
-     firstName: '',
-     lastName: '',
+  
+    const {signUpUser: authSignup} = useAuth()
+
+   const [username, setUsername] = useState("")
+   const [password, setPassword] = useState("")
+   const [confirmPassword, setConfirmPassword] = useState("")
+   const [firstName, setFirstName] = useState("")
+   const [lastName,setLastname] = useState("")
+
+
+   const signUpUser = async() => {
+
+
+     
+    if(password.length >10 && password.trim() === confirmPassword.trim() && firstName.length > 2 && lastName.length > 2) {
+      console.log("sign uo")
+      await  authSignup(username,password,firstName,lastName)
+
+      navigation.navigate('/')
+    }else{
+      console.log("provide the complete credentials")
+    }
+    
 
    }
 
-    render(){
+
         return (
             <Card style={styles.LoginCard} >
             <Card.Title title="Sign Up" />
@@ -25,34 +42,34 @@ export default class SignUpScreen extends React.Component {
               <TextInput
               style={styles.SignupInput}
               label='first name'
-              value={this.state.firstName}
-              onChangeText={firstName=> this.setState({firstName})}
+              value={firstName}
+              onChangeText={firstName=> setFirstName(firstName)}
               />
               <TextInput
               style={styles.SignupInput}
               label='last name'
-              value={this.state.lastName}
-              onChangeText={lastName=> this.setState({lastName})}
+              value={lastName}
+              onChangeText={lastName=> setLastname(lastName)}
               />
               <TextInput
               style={styles.SignupInput}
               label='username'
-              value={this.state.username}
-              onChangeText={username=> this.setState({username})}
+              value={username}
+              onChangeText={username=> setUsername(username)}
               />
               <TextInput
               style={styles.SignupInput}
                 label='password'
-                value={this.state.password}
-                onChangeText={password=> this.setState({password})}
+                value={password}
+                onChangeText={password=> setPassword(password)}
                 secureTextEntry
                 right={<TextInput.Icon icon="eye"  onPress={e=>GestureResponderEvent(e)}/>}
               />
                <TextInput
               style={styles.SignupInput}
                 label='confrim password'
-                value={this.state.confirmPassword}
-                onChangeText={confirmPassword=> this.setState({confirmPassword})}
+                value={confirmPassword}
+                onChangeText={confirmPassword=> setConfirmPassword(confirmPassword)}
                 secureTextEntry
                 right={<TextInput.Icon icon="eye"  onPress={e=>GestureResponderEvent(e)}/>}
               />
@@ -60,13 +77,13 @@ export default class SignUpScreen extends React.Component {
             </Card.Content>
             
             <Card.Actions>
-              <Button  onPress={()=>this.props.navigation.navigate('Login')}>Login</Button>
-              <Button>SignUp</Button>
+              <Button  onPress={()=>navigation.navigate('Login')}>Login</Button>
+              <Button onPress={()=> signUpUser()}>SignUp</Button>
             </Card.Actions>
           </Card>
           )
 
-    }
+
   
 }
 
@@ -89,4 +106,4 @@ const styles = StyleSheet.create({
     }
 })
 
-
+export default SignUpScreen
