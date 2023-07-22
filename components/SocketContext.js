@@ -22,5 +22,18 @@ export function SocketProvider({ children }) {
     };
   }, []);
 
+  // const socketConnection = () => {
+
+  //   const newSocket = io('http://localhost:3001');
+
+  //   setSocket(newSocket);
+
+  // }
+
+  // const value = {
+  //   socket,
+  //   socketConnection
+  // }
+
   return <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>;
 }

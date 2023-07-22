@@ -14,20 +14,24 @@ const ChatView = ({route}) => {
   const [chatInfo, setChatInfo] = useState(null);
   const [isNewChatRoom, setIsNewChatRoom] = useState(false);
 
+
   const socket = useSocket();
   
+  // socketConnection()
 
   useEffect(() => {
 
-    console.log(userId)
+
     
     const { chatRoomInfo } = route.params;
+    console.log(chatRoomInfo)
     const chatInfo = chatRoomInfo.chatRoom;
 
   
     setChatInfo(chatInfo);
     setIsNewChatRoom(chatInfo.isNew);
 
+    
     socket.on('connect', handleSocketConnect);
     socket.on('new message', handleSocketNewMessage);
 
@@ -39,9 +43,11 @@ const ChatView = ({route}) => {
       retrieveOldMessagesAndSetState(chatInfo.chatRoomId, token);
     }
 
-    return () => {
-      socket.disconnect();
-    };
+
+    
+    // return () => {
+    //   socket.disconnect();
+    // };
   }, [socket]);
 
   const handleSocketConnect = () => {
@@ -50,13 +56,15 @@ const ChatView = ({route}) => {
 
   const handleSocketNewMessage = (data) => {
     console.log("message received")
-
+  
+    
     setMessages(prev=>{
       
  
       const newMsg = {
         id: data.message[0].postId,
-        text: data.message[0].message.messageText
+        text: data.message[0].message.messageText,
+        by: data.by,
       }
       return(
         [...prev, newMsg]
@@ -68,11 +76,12 @@ const ChatView = ({route}) => {
 
     try {
       const data = await retrieveOldMessages(chatRoomId, token);
-      console.log(data.conversation);
+
 
       const conversation = data.conversation.map((conversation) => ({
         id: conversation._id,
         text: conversation.message.messageText,
+        by: conversation.postedByUser._id
       }));
 
       setMessages((prevMessages) => [...prevMessages, ...conversation]);
@@ -82,7 +91,7 @@ const ChatView = ({route}) => {
   };
 
   const handleSend = async () => {
-    console.log('pressed');
+  
 
     socket.emit('message', { message: chat });
 
@@ -90,12 +99,8 @@ const ChatView = ({route}) => {
       const { isNew, message, chatRoomId } = chatInfo;
 
       try {
-        const data = await sendMessage(chatRoomId, chat.trim(), token);
-        console.log(data);
-
-        const { postId } = data.post[0];
-
-        // setMessages((prevMessages) => [...prevMessages, { id: postId, text: chat }]);
+       await sendMessage(chatRoomId, chat.trim(), token);
+    
         setChat('');
       } catch (error) {
         console.log(error);
@@ -104,7 +109,8 @@ const ChatView = ({route}) => {
   };
 
   const renderMessage = ({ item }) => (
-    <View style={styles.messageContainer}>
+
+    <View style={item.by === userId ? styles.messageContainerForSelf:styles.messageContainerForOthers}>
       <Text style={styles.messageText}>{item.text}</Text>
     </View>
   );
@@ -150,7 +156,7 @@ const styles = StyleSheet.create({
       paddingHorizontal: 16,
       paddingVertical: 8,
     },
-    messageContainer: {
+    messageContainerForOthers: {
       backgroundColor: '#DCF8C6',
       borderRadius: 8,
       padding: 8,
@@ -158,6 +164,16 @@ const styles = StyleSheet.create({
       maxWidth: '75%',
       alignSelf: 'flex-start',
     },
+
+    messageContainerForSelf: {
+      backgroundColor: '#DCF8C6',
+      borderRadius: 8,
+      padding: 8,
+      marginBottom: 8,
+      maxWidth: '75%',
+      alignSelf: 'flex-end',
+    },
+
     messageText: {
       fontSize: 16,
     },

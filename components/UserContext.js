@@ -30,6 +30,12 @@ export const AuthProvider = ({children}) => {
 
     }
 
+    const logoutUser = () => {
+        setToken(null)
+        setUserId(null)
+        localStorage.clear()
+    }
+
     const signUpUser = async(username, password, firstName, lastName) => {
 
         const {authorization, userId} = await signup(username, password, firstName, lastName)
@@ -56,6 +62,7 @@ export const AuthProvider = ({children}) => {
        userId,
        loginUser,
        signUpUser,
+       logoutUser
 
     }
 

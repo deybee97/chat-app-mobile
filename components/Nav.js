@@ -42,7 +42,7 @@ const  Nav = () => {
   //   this.setState({token})
   // }
  
-  const {token, userId} = useAuth()
+  const {token, userId,logoutUser} = useAuth()
 
 
 
@@ -56,11 +56,15 @@ const  Nav = () => {
           <SocketProvider>
         { token ? (
           <Main.Navigator initialRouteName='Conversation'>
+           
             <Main.Screen name='Conversation' 
             component={(props)=><Conversation token={token}  userId={userId} {...props} />}
             options={({navigation})=> ({
               headerRight: () => (
+                <>
                 <Button title="contacts" onPress={() => navigation.navigate('Home')} />
+                <Button title="logout" onPress={logoutUser}/>
+                </>
               ),
             })}
 

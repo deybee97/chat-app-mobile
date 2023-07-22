@@ -16,11 +16,11 @@ export default class Conversation extends React.Component{
 
   async componentDidMount(){
 
-    console.log(this.props.userId)
+
     try {
      const data = await getRecentConversations(this.props.token)
    
-      console.log(data.conversation, this.props.token, this.props.userId)
+
     
     const  cleanedConversation = data.conversation.map(conv=>({
         lastMessage: conv.message.messageText,
