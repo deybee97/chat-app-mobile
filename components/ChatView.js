@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { retrieveOldMessages, sendMessage } from '../api/chatRoom'; // Import the API functions
+import { retrieveOldMessages, sendMessage, markMessageAsRead as markAsRead } from '../api/chatRoom'; // Import the API functions
 import { useSocket } from './SocketContext'; // Import the socket context
 import { useAuth } from './UserContext';
+import axios from 'axios';
 
 const ChatView = ({route}) => {
 
@@ -43,7 +44,7 @@ const ChatView = ({route}) => {
       retrieveOldMessagesAndSetState(chatInfo.chatRoomId, token);
     }
 
-
+   markMessageAsRead(chatInfo.chatRoomId)
     
     // return () => {
     //   socket.disconnect();
@@ -71,6 +72,14 @@ const ChatView = ({route}) => {
       )
     })
   };
+
+
+  const markMessageAsRead = async(chatRoomId)=> {
+
+   const data =   await markAsRead(chatRoomId, token)
+    
+   console.log(data)
+  }
 
   const retrieveOldMessagesAndSetState = async (chatRoomId, token) => {
 

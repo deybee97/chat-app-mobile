@@ -87,3 +87,31 @@ export const getRecentConversations = async(token) => {
         
     }
 }
+
+
+export  const markMessageAsRead = async(roomId, token)=> {
+
+
+
+    try {
+       const response =  await axios.put(`http://localhost:3001/room/${roomId}/mark-read`,
+       {
+
+       },
+        {
+             headers:{
+                'Content-Type': 'application/json',
+                'authorization': `Bearer ${token}`
+                }
+        }
+        )
+        return response.data
+    } 
+    catch (error) {
+         console.log(error)
+    }
+    
+
+    
+
+  }
