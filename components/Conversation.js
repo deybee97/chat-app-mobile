@@ -1,47 +1,75 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { View , ScrollView,TouchableOpacity} from 'react-native'
 import {getRecentConversations} from '../api/chatRoom.js'
 import User from './User.js'
 import { Text } from 'react-native-paper'
 import { initiateConversation } from '../api/chatRoom.js'
+import { useSocket } from './SocketContext'
+import { useAuth } from './UserContext';
+import { deleteConversationById } from '../api/delete.js'
+
+ const Conversation  = (props) => {
 
 
 
-export default class Conversation extends React.Component{
-
-
-  state = {
-    conversations: []
-  }
-
-  async componentDidMount(){
-
-
-    try {
-     const data = await getRecentConversations(this.props.token)
+   const [conversations,setConversation]  = useState([])
+   const [selectedConvoId, setSelectedConvoId] = useState(null)
+   const {userId,token}= useAuth()
+   const socket = useSocket();
    
+  
 
+  const getConversations = async()=>{
+    try {
+      const data = await getRecentConversations(token)
     
-    const  cleanedConversation = data.conversation.map(conv=>({
-        lastMessage: conv.message.messageText,
-        postedBy: conv.postedByUser._id,
-        userInfo: conv.roomInfo.find((info) => info[0]._id !== this.props.userId.trim() )[0]
-    }))
-    
-    console.log(cleanedConversation)
-     this.setState({conversations:cleanedConversation})
-    } catch (error) {
-      console.log(error)
-    }
+ 
      
-  }
+     const  cleanedConversation = data.conversation.map(conv=>({
+         lastMessage: conv.message.messageText,
+         postedBy: conv.postedByUser._id,
+         userInfo: conv.roomInfo.find((info) => info[0]._id !== props.userId.trim() )[0]
+     }))
+     
 
-  initiateConversation = async(receiverId, firsName)=> {
+     console.log(cleanedConversation)
+      setConversation([...cleanedConversation])
+       
+    
+      
+      
+     } catch (error) {
+       console.log(error)
+     }
+   }
+
+
+ 
+  useEffect(()=>{
+    getConversations()
+  },[])
+
+
+  useEffect(()=>{
+  
+    if(socket)
+    {
+      socket.emit("login", userId)
+    
+      socket.on("update convo",handleConversationUpdate)
+    }
+    
+    
+     
+  },[socket, conversations])
+
+
+  const initConversation = async(receiverId, firsName)=> {
 
     try {
-      const chatRoomInfo = await initiateConversation(receiverId, this.props.token)
+      const chatRoomInfo = await initiateConversation(receiverId, token)
       console.log(chatRoomInfo)
-      this.props.navigation.navigate('Chat', {
+      props.navigation.navigate('Chat', {
         chatRoomInfo,
         title: firsName
       })
@@ -52,22 +80,60 @@ export default class Conversation extends React.Component{
     
   }
 
-  render(){
+  const handleConversationUpdate = (data)=>{
+     
+    const {receipientId, messagePayload, postedBy} = data
+    console.log(receipientId, messagePayload, postedBy)
+    console.log(conversations)
+    const updatedConversation = conversations.map(conversation=>{
+      console.log(conversation.userInfo._id);
+       if(conversation.userInfo._id === receipientId){
+
+         return {
+          ...conversation,
+          lastMessage: messagePayload.messageText,
+          postedBy,
+         }
+       }else{
+        return conversation
+       }
+    })
+     setConversation(updatedConversation)
+  }
+
+  const deleteConversation = async()=> {
+
+    if(selectedConvoId){x
+   
+     const data = await deleteConversationById(token, selectedConvoId)
+
+     const updatedConvo= conversations.filter(conversation=> conversation.id !== selectedConvoId)
+     setConversation(updatedConvo)
+     selectedMessageId = null
+    }
+
+     // update existing message
+  }
+
+
+
     return (
       <ScrollView>
         {
-          this.state.conversations.length > 0 && 
-          this.state.conversations.map(convo=>
-            <TouchableOpacity key={convo.userInfo._id} onPress={()=> this.initiateConversation(convo.userInfo._id, convo.userInfo.firstName)}> 
+          conversations.length > 0 && 
+          conversations.map(convo=>
+            <TouchableOpacity key={convo.userInfo._id} onPress={()=> initConversation(convo.userInfo._id, convo.userInfo.firstName)}> 
              <User  firsName={convo.lastMessage} lastName={convo.userInfo.lastName} />
              </TouchableOpacity>
           )
         }
       </ScrollView>
     )
-  }
+  
 
   
 }
+
+export default Conversation
 
 

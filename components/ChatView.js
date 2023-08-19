@@ -4,6 +4,7 @@ import { retrieveOldMessages, sendMessage, markMessageAsRead as markAsRead } fro
 import { useSocket } from './SocketContext'; // Import the socket context
 import { useAuth } from './UserContext';
 import axios from 'axios';
+import { deleteMessageById } from '../api/delete';
 
 const ChatView = ({route}) => {
 
@@ -14,27 +15,28 @@ const ChatView = ({route}) => {
   const [messages, setMessages] = useState([]);
   const [chatInfo, setChatInfo] = useState(null);
   const [isNewChatRoom, setIsNewChatRoom] = useState(false);
-
+  const [selectedMessageId, setSelectedMessageId] = useState(null)
 
   const socket = useSocket();
   
   // socketConnection()
+
 
   useEffect(() => {
 
 
     
     const { chatRoomInfo } = route.params;
-    console.log(chatRoomInfo)
+    console.log(socket)
     const chatInfo = chatRoomInfo.chatRoom;
-
-  
+   
     setChatInfo(chatInfo);
     setIsNewChatRoom(chatInfo.isNew);
 
     
-    socket.on('connect', handleSocketConnect);
+    // socket.on('connect', handleSocketConnect);
     socket.on('new message', handleSocketNewMessage);
+ 
 
     socket.emit("identity", userId)
     socket.emit("subscribe", chatInfo.chatRoomId)
@@ -79,6 +81,20 @@ const ChatView = ({route}) => {
    const data =   await markAsRead(chatRoomId, token)
     
    console.log(data)
+  }
+
+  const deleteMessage = async()=> {
+
+    if(selectedMessageId){
+   
+     const data = await deleteMessageById(token, selectedMessageId)
+
+     const updatedMessages = messages.filter(message=> message.id !== selectedMessageId)
+     setMessages(updatedMessages)
+     setSelectedMessageId(null)
+    }
+
+     // update existing message
   }
 
   const retrieveOldMessagesAndSetState = async (chatRoomId, token) => {
