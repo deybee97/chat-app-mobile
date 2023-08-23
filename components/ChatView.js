@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { retrieveOldMessages, sendMessage, markMessageAsRead as markAsRead } from '../api/chatRoom'; // Import the API functions
 import { useSocket } from './SocketContext'; // Import the socket context
 import { useAuth } from './UserContext';
 import axios from 'axios';
 import { deleteMessageById } from '../api/delete';
+import { Ionicons } from '@expo/vector-icons'
 
-const ChatView = ({route}) => {
+
+const ChatView = ({route, navigation}) => {
 
 
   const {token, userId} = useAuth()
@@ -17,9 +19,12 @@ const ChatView = ({route}) => {
   const [isNewChatRoom, setIsNewChatRoom] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState(null)
 
+  
   const socket = useSocket();
   
   // socketConnection()
+
+  
 
 
   useEffect(() => {
@@ -51,7 +56,42 @@ const ChatView = ({route}) => {
     // return () => {
     //   socket.disconnect();
     // };
+
+     // Set the header right button for delete
+  
   }, [socket]);
+
+
+  const deleteMessage = useCallback(async()=> {
+    
+    console.log(selectedMessageId)
+    if(selectedMessageId){
+      
+     const data = await deleteMessageById(token, selectedMessageId)
+     console.log(data)
+
+     const updatedMessages = messages.filter(message=> message.id !== selectedMessageId)
+     setMessages(updatedMessages)
+     setSelectedMessageId(null)
+    }
+
+     // update existing message
+  }, [selectedMessageId, messages, token])
+
+  useEffect(() => {
+    // ... your existing code
+
+    // Set the header right button for delete
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={deleteMessage} style={styles.headerButton}>
+          <Ionicons name="trash-outline" size={24} color="black" />
+        </TouchableOpacity>
+      ),
+    });
+
+    // ... your existing code
+  }, [socket, deleteMessage, navigation]);
 
   const handleSocketConnect = () => {
     console.log('WebSocket connected');
@@ -83,19 +123,7 @@ const ChatView = ({route}) => {
    console.log(data)
   }
 
-  const deleteMessage = async()=> {
-
-    if(selectedMessageId){
-   
-     const data = await deleteMessageById(token, selectedMessageId)
-
-     const updatedMessages = messages.filter(message=> message.id !== selectedMessageId)
-     setMessages(updatedMessages)
-     setSelectedMessageId(null)
-    }
-
-     // update existing message
-  }
+  
 
   const retrieveOldMessagesAndSetState = async (chatRoomId, token) => {
 
@@ -133,11 +161,32 @@ const ChatView = ({route}) => {
     }
   };
 
-  const renderMessage = ({ item }) => (
 
-    <View style={item.by === userId ? styles.messageContainerForSelf:styles.messageContainerForOthers}>
-      <Text style={styles.messageText}>{item.text}</Text>
-    </View>
+  const handleMsgClick = (messageId) => {
+
+      
+     if(selectedMessageId !==messageId){
+
+      setSelectedMessageId(messageId);
+     }
+     else{
+      setSelectedMessageId(null)
+     }
+
+    console.log(messageId)
+  }
+
+  const renderMessage = ({ item }) => (
+    
+    <TouchableOpacity onPress={() => handleMsgClick(item.id)} 
+    style={[
+      
+      item.by === userId ? styles.messageContainerForSelf : styles.messageContainerForOthers,
+      item.id === selectedMessageId && styles.highlightedMessage,
+      
+    ]}>
+      <Text style={styles.messageText} >{item.text}</Text>
+    </TouchableOpacity>
   );
 
   return (
@@ -228,6 +277,12 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         fontWeight: 'bold',
         fontSize: 16,
+      },
+      headerButton: {
+        marginRight: 16, // Adjust this value as needed
+      },
+      highlightedMessage: {
+        backgroundColor: 'black', // or any other color you want for highlighting
       },
     });
     

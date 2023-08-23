@@ -58,7 +58,6 @@ const  Nav = () => {
           <Main.Navigator initialRouteName='Conversation'>
            
             <Main.Screen name='Conversation' 
-            component={(props)=><Conversation token={token}  userId={userId} {...props} />}
             options={({navigation})=> ({
               headerRight: () => (
                 <>
@@ -66,16 +65,21 @@ const  Nav = () => {
                 <Button title="logout" onPress={logoutUser}/>
                 </>
               ),
-            })}
+            })}>
+            {(props)=>(<Conversation token={token}  userId={userId} {...props} />)}
+           
 
-             />
-            <Main.Screen name='Home' component={(props)=><HomeScreen token={token} {...props} />} />
+           </Main.Screen>
+            <Main.Screen name='Home'  >{(props)=><HomeScreen token={token} {...props} />}</Main.Screen> 
             <Main.Screen name='Chat' 
-              component={(props)=><ChatView token={token} userId={userId} {...props}/>} 
-              options={({route})=>({
-                title: route.params.title
-              })}
-            />
+            options={({route})=>({
+              title: route.params.title
+            })}>
+             {(props)=><ChatView token={token} userId={userId} {...props}/>} 
+              
+              </Main.Screen> 
+              
+          
           </Main.Navigator>
  
         ): (
